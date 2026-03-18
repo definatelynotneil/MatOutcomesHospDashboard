@@ -383,15 +383,24 @@ def get_latest_year() -> int:
     return max(MSDS_URLS.keys())
 
 
-def _compute_metric_rows(df: pd.DataFrame, metric_key: str, meta: dict) -> list[dict]:
+def _compute_metric_rows(df: pd.DataFrame, metric_key: str, meta: dict,
+                         data_year: int | None = None) -> list[dict]:
     """Compute per-trust rows for one MSDS metric from a loaded year dataframe."""
     msds_dim = meta["msds_dim"]
     dim_data = df[df["Dimension"] == msds_dim]
     if dim_data.empty:
         return []
 
+    # Derive year from data if not supplied
+    if data_year is None and "_year" in df.columns:
+        years = df["_year"].dropna().unique()
+        data_year = int(years[0]) if len(years) == 1 else None
+
     num_measures  = set(meta["numerator_measures"])
     excl_measures = set(meta.get("denominator_exclude", []))
+
+    # How many months are covered for this metric
+    n_months = dim_data["_month"].nunique() if "_month" in dim_data.columns else None
 
     by_trust_measure = (
         dim_data
@@ -412,6 +421,8 @@ def _compute_metric_rows(df: pd.DataFrame, metric_key: str, meta: dict) -> list[
                 "Denominator": denominator,
                 "Rate": numerator / denominator * 1000,
                 "Rate_pct": numerator / denominator * 100,
+                "_data_year": data_year,
+                "_data_months": n_months,
             })
     return rows
 
@@ -457,11 +468,13 @@ def get_cqim_annual(year: int) -> pd.DataFrame:
 
         # Use fallback year if it has meaningfully more months for this metric
         if fallback_months > primary_months and not df_fallback.empty:
-            df_use = df_fallback
+            df_use    = df_fallback
+            year_used = fallback_year
         else:
-            df_use = df_primary
+            df_use    = df_primary
+            year_used = year
 
-        rows = _compute_metric_rows(df_use, metric_key, meta)
+        rows = _compute_metric_rows(df_use, metric_key, meta, data_year=year_used)
         results.extend(rows)
 
     return pd.DataFrame(results) if results else pd.DataFrame()

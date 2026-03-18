@@ -400,6 +400,17 @@ def _val_col(meta: dict) -> str:
     return "Rate" if meta["unit"].startswith("per") else "Rate_pct"
 
 
+def _metric_label(data: pd.DataFrame) -> str:
+    """Return a coverage label like 'Jan–Dec 2024 (12 months)' from metric data rows."""
+    if data.empty:
+        return annual_label
+    year = data["_data_year"].iloc[0] if "_data_year" in data.columns else None
+    months = data["_data_months"].iloc[0] if "_data_months" in data.columns else None
+    if year is None:
+        return annual_label
+    return get_msds_coverage(int(year)) if months is None else f"{get_msds_coverage(int(year))}"
+
+
 # ---------------------------------------------------------------------------
 # SIDEBAR
 # ---------------------------------------------------------------------------
@@ -729,7 +740,7 @@ with tab_perinatal:
     if not apgar_data.empty:
         fig = make_funnel_chart(
             apgar_data, "Rate", "Denominator", "Org_Name", focus_fragment,
-            f"Low Apgar at 5 min (term singleton) — {annual_label}",
+            f"Low Apgar at 5 min (term singleton) — {_metric_label(apgar_data)}",
             apgar_meta["unit"], higher_is_worse=True, comparators=comparators or None,
         )
         if fig:
@@ -760,9 +771,10 @@ with tab_birth:
         data = cqim_for_dim(meta["dim"])
         vc   = _val_col(meta)
         if not data.empty:
+            mlabel = _metric_label(data)
             fig = make_funnel_chart(
                 data, vc, "Denominator", "Org_Name", focus_fragment,
-                f"{metric_key} — {annual_label}",
+                f"{metric_key} — {mlabel}",
                 meta["unit"], meta["higher_is_worse"], comparators=comparators or None,
             )
             if fig:
@@ -777,7 +789,7 @@ with tab_birth:
     if not data.empty:
         fig = make_funnel_chart(
             data, "Rate_pct", "Denominator", "Org_Name", focus_fragment,
-            f"Skin-to-skin contact at 1 hour (term) — {annual_label}",
+            f"Skin-to-skin contact at 1 hour (term) — {_metric_label(data)}",
             meta["unit"], meta["higher_is_worse"], comparators=comparators or None,
         )
         if fig:
@@ -812,7 +824,7 @@ with tab_delivery:
         if not data.empty:
             fig = make_funnel_chart(
                 data, "Rate_pct", "Denominator", "Org_Name", focus_fragment,
-                f"{key} — {annual_label}",
+                f"{key} — {_metric_label(data)}",
                 meta["unit"], meta["higher_is_worse"], comparators=comparators or None,
             )
             if fig:
@@ -843,16 +855,17 @@ with tab_morbidity:
     tears_meta = MSDS_METRICS["3rd/4th degree perineal tears"]
     tears_data = cqim_for_dim(tears_meta["dim"])
     if not tears_data.empty:
+        tears_label = _metric_label(tears_data)
         fig = make_funnel_chart(
             tears_data, "Rate", "Denominator", "Org_Name", focus_fragment,
-            f"3rd/4th degree perineal tears — {annual_label}",
+            f"3rd/4th degree perineal tears — {tears_label}",
             tears_meta["unit"], higher_is_worse=True, comparators=comparators or None,
         )
         if fig:
             st.plotly_chart(fig, use_container_width=True)
             st.markdown(
                 data_note("MSDS Provider Level, NHS Digital",
-                          annual_label, _n_trusts(tears_data)),
+                          tears_label, _n_trusts(tears_data)),
                 unsafe_allow_html=True,
             )
     else:
@@ -866,14 +879,14 @@ with tab_morbidity:
     if not bf_data.empty:
         fig = make_funnel_chart(
             bf_data, "Rate_pct", "Denominator", "Org_Name", focus_fragment,
-            f"Breastfeeding initiation — {annual_label}",
+            f"Breastfeeding initiation — {_metric_label(bf_data)}",
             bf_meta["unit"], higher_is_worse=False, comparators=comparators or None,
         )
         if fig:
             st.plotly_chart(fig, use_container_width=True)
             st.markdown(
                 data_note("MSDS Provider Level, NHS Digital",
-                          annual_label, _n_trusts(bf_data)),
+                          _metric_label(bf_data), _n_trusts(bf_data)),
                 unsafe_allow_html=True,
             )
 
@@ -949,14 +962,14 @@ with tab_risk:
     if not smk_bk.empty:
         fig = make_funnel_chart(
             smk_bk, "Rate_pct", "Denominator", "Org_Name", focus_fragment,
-            f"Smoking status at booking — {annual_label}",
+            f"Smoking status at booking — {_metric_label(smk_bk)}",
             smk_bk_meta["unit"], higher_is_worse=True, comparators=comparators or None,
         )
         if fig:
             st.plotly_chart(fig, use_container_width=True)
             st.markdown(
                 data_note("MSDS Provider Level, NHS Digital",
-                          annual_label, _n_trusts(smk_bk))
+                          _metric_label(smk_bk), _n_trusts(smk_bk))
                 + " &nbsp;|&nbsp; Denominator: women with a known smoking status",
                 unsafe_allow_html=True,
             )
@@ -966,14 +979,14 @@ with tab_risk:
     if not smk_del.empty:
         fig = make_funnel_chart(
             smk_del, "Rate_pct", "Denominator", "Org_Name", focus_fragment,
-            f"Smoking at delivery (CO ≥4 ppm) — {annual_label}",
+            f"Smoking at delivery (CO ≥4 ppm) — {_metric_label(smk_del)}",
             smk_del_meta["unit"], higher_is_worse=True, comparators=comparators or None,
         )
         if fig:
             st.plotly_chart(fig, use_container_width=True)
             st.markdown(
                 data_note("MSDS Provider Level, NHS Digital",
-                          annual_label, _n_trusts(smk_del))
+                          _metric_label(smk_del), _n_trusts(smk_del))
                 + " &nbsp;|&nbsp; CO ≥4 ppm is a proxy for active smoking at delivery",
                 unsafe_allow_html=True,
             )
@@ -985,14 +998,14 @@ with tab_risk:
     if not eb_data.empty:
         fig = make_funnel_chart(
             eb_data, "Rate_pct", "Denominator", "Org_Name", focus_fragment,
-            f"Antenatal booking before 10 weeks gestation — {annual_label}",
+            f"Antenatal booking before 10 weeks gestation — {_metric_label(eb_data)}",
             eb_meta["unit"], higher_is_worse=False, comparators=comparators or None,
         )
         if fig:
             st.plotly_chart(fig, use_container_width=True)
             st.markdown(
                 data_note("MSDS Provider Level, NHS Digital",
-                          annual_label, _n_trusts(eb_data)),
+                          _metric_label(eb_data), _n_trusts(eb_data)),
                 unsafe_allow_html=True,
             )
 
