@@ -34,6 +34,7 @@ from data_loaders import (
     get_latest_year,
     get_msds_trust_list,
     load_mbrrace_local,
+    load_msds_year,
 )
 
 # ---------------------------------------------------------------------------
@@ -69,7 +70,13 @@ st.markdown("""
 # CACHED DATA LOADING  (all @st.cache_data wrappers live here, not in data_loaders)
 # ---------------------------------------------------------------------------
 
-@st.cache_data(show_spinner="Loading MSDS data (downloading missing months from NHS Digital — this may take up to 60 s on first run)…")
+@st.cache_data(show_spinner=False)
+def _load_raw_msds(year: int) -> pd.DataFrame:
+    """Download and cache raw MSDS monthly data for one year."""
+    return load_msds_year(year)
+
+
+@st.cache_data(show_spinner=False)
 def _load_cqims(year: int) -> pd.DataFrame:
     return get_cqim_annual(year)
 
@@ -493,7 +500,18 @@ st.markdown("---")
 # LOAD DATA
 # ---------------------------------------------------------------------------
 
-with st.spinner(f"Loading MSDS {annual_year} data…"):
+# Pre-load the prior year's raw data so it is on disk before get_cqim_annual
+# needs it for metrics with sparse current-year coverage (e.g. perineal tears).
+_fallback_year = annual_year - 1
+if _fallback_year in MSDS_URLS:
+    with st.spinner(
+        f"Loading MSDS {_fallback_year} data "
+        f"(needed for metrics unavailable in full in {annual_year} — "
+        "this may take up to 60 s on first run)…"
+    ):
+        _load_raw_msds(_fallback_year)
+
+with st.spinner(f"Computing annual metrics from MSDS {annual_year} data…"):
     cqim_df = _load_cqims(annual_year)
 
 mbrrace_df = _load_mbrrace()
