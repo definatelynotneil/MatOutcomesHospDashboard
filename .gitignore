@@ -1,0 +1,40 @@
+# Cached data files (auto-downloaded on first run)
+data/*.parquet
+
+# MBRRACE data (manually downloaded — contains trust-level statistics)
+# Uncomment the line below to also exclude the MBRRACE CSV from version control
+# data/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
