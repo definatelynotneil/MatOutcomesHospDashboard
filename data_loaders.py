@@ -47,7 +47,7 @@ MSDS_METRICS: dict[str, dict] = {
             "Perineal tear - fourth degree",
         ],
         "denominator_exclude": ["Missing Value / Value outside reporting parameters"],
-        "unit": "per 1,000 deliveries",
+        "unit": "per 1,000 vaginal deliveries",
         "scale": 1000,
         "domain": "Maternal Morbidity",
         "higher_is_worse": True,
@@ -383,60 +383,86 @@ def get_latest_year() -> int:
     return max(MSDS_URLS.keys())
 
 
+def _compute_metric_rows(df: pd.DataFrame, metric_key: str, meta: dict) -> list[dict]:
+    """Compute per-trust rows for one MSDS metric from a loaded year dataframe."""
+    msds_dim = meta["msds_dim"]
+    dim_data = df[df["Dimension"] == msds_dim]
+    if dim_data.empty:
+        return []
+
+    num_measures  = set(meta["numerator_measures"])
+    excl_measures = set(meta.get("denominator_exclude", []))
+
+    by_trust_measure = (
+        dim_data
+        .groupby(["Org_Name", "Measure"], as_index=False)["Final_value"]
+        .sum()
+    )
+
+    rows = []
+    for org_name, grp in by_trust_measure.groupby("Org_Name"):
+        measure_counts: dict[str, float] = dict(zip(grp["Measure"], grp["Final_value"]))
+        numerator   = sum(measure_counts.get(m, 0.0) for m in num_measures)
+        denominator = sum(v for m, v in measure_counts.items() if m not in excl_measures)
+        if denominator > 0:
+            rows.append({
+                "Org_Name": org_name,
+                "Dimension": metric_key,
+                "Numerator": numerator,
+                "Denominator": denominator,
+                "Rate": numerator / denominator * 1000,
+                "Rate_pct": numerator / denominator * 100,
+            })
+    return rows
+
+
+def _month_count_for_dim(df: pd.DataFrame, msds_dim: str) -> int:
+    """Return number of distinct months present for a dimension in a dataframe."""
+    if df.empty or "_month" not in df.columns:
+        return 0
+    sub = df[df["Dimension"] == msds_dim]
+    return sub["_month"].nunique() if not sub.empty else 0
+
+
 def get_cqim_annual(year: int) -> pd.DataFrame:
     """
     Compute annual MSDS metrics per trust from raw breakdown data.
 
-    Iterates over MSDS_METRICS, sums numerator measure counts and valid
-    denominator counts across all months, then computes rates.
+    For each metric, uses the year with the most months of data for that
+    specific dimension — falling back to (year-1) if the primary year has
+    sparse coverage.  This handles cases where certain dimensions (e.g.
+    GenitalTractTraumaticLesion) are only published for a subset of months
+    in the most recent year.
 
     Returns columns:
         Org_Name, Dimension (= metric key name), Numerator, Denominator,
         Rate (per 1,000), Rate_pct (%)
     """
-    df = load_msds_year(year)
-    if df.empty:
-        return pd.DataFrame()
+    df_primary  = load_msds_year(year)
+    fallback_year = year - 1
+    df_fallback = load_msds_year(fallback_year) if fallback_year in MSDS_URLS else pd.DataFrame()
 
     required = {"Dimension", "Measure", "Final_value", "Org_Name"}
-    if not required.issubset(df.columns):
-        return pd.DataFrame()
+    if not required.issubset(df_primary.columns if not df_primary.empty else set()):
+        if df_primary.empty:
+            return pd.DataFrame()
 
     results = []
 
     for metric_key, meta in MSDS_METRICS.items():
         msds_dim = meta["msds_dim"]
-        dim_data = df[df["Dimension"] == msds_dim]
-        if dim_data.empty:
-            continue
 
-        num_measures = set(meta["numerator_measures"])
-        excl_measures = set(meta.get("denominator_exclude", []))
+        primary_months  = _month_count_for_dim(df_primary,  msds_dim)
+        fallback_months = _month_count_for_dim(df_fallback, msds_dim)
 
-        # Sum Final_value across all months by trust and measure
-        by_trust_measure = (
-            dim_data
-            .groupby(["Org_Name", "Measure"], as_index=False)["Final_value"]
-            .sum()
-        )
+        # Use fallback year if it has meaningfully more months for this metric
+        if fallback_months > primary_months and not df_fallback.empty:
+            df_use = df_fallback
+        else:
+            df_use = df_primary
 
-        for org_name, grp in by_trust_measure.groupby("Org_Name"):
-            measure_counts: dict[str, float] = dict(
-                zip(grp["Measure"], grp["Final_value"])
-            )
-            numerator = sum(measure_counts.get(m, 0.0) for m in num_measures)
-            denominator = sum(
-                v for m, v in measure_counts.items() if m not in excl_measures
-            )
-            if denominator > 0:
-                results.append({
-                    "Org_Name": org_name,
-                    "Dimension": metric_key,
-                    "Numerator": numerator,
-                    "Denominator": denominator,
-                    "Rate": numerator / denominator * 1000,
-                    "Rate_pct": numerator / denominator * 100,
-                })
+        rows = _compute_metric_rows(df_use, metric_key, meta)
+        results.extend(rows)
 
     return pd.DataFrame(results) if results else pd.DataFrame()
 
@@ -445,15 +471,28 @@ def get_cqim_trend(year: int, metric_key: str) -> pd.DataFrame:
     """
     Monthly trend for one MSDS metric across all trusts.
 
+    Uses the year with the most months for the given metric, falling back
+    to (year-1) if that has better coverage.
+
     Returns columns: Org_Name, _month, Numerator, Denominator, Rate (per 1,000).
     Sorted by MONTH_ORDER.
     """
-    df = load_msds_year(year)
-    if df.empty or metric_key not in MSDS_METRICS:
+    if metric_key not in MSDS_METRICS:
         return pd.DataFrame()
 
-    meta = MSDS_METRICS[metric_key]
+    meta     = MSDS_METRICS[metric_key]
     msds_dim = meta["msds_dim"]
+
+    df_primary  = load_msds_year(year)
+    fallback_year = year - 1
+    df_fallback = load_msds_year(fallback_year) if fallback_year in MSDS_URLS else pd.DataFrame()
+
+    primary_months  = _month_count_for_dim(df_primary,  msds_dim)
+    fallback_months = _month_count_for_dim(df_fallback, msds_dim)
+    df = df_fallback if fallback_months > primary_months and not df_fallback.empty else df_primary
+
+    if df.empty:
+        return pd.DataFrame()
 
     dim_data = df[df["Dimension"] == msds_dim]
     if dim_data.empty:

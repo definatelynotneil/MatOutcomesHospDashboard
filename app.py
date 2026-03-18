@@ -835,8 +835,10 @@ with tab_morbidity:
     st.markdown("#### 3rd and 4th Degree Perineal Tears")
     st.caption(
         "Rate of severe perineal injury (3rd or 4th degree tear) requiring "
-        "surgical repair. Denominator: all deliveries with any genital tract "
-        "trauma record."
+        "surgical repair. Denominator: vaginal deliveries with a recorded "
+        "genital tract trauma outcome (caesarean section deliveries are excluded). "
+        "Where 2025 data has limited monthly coverage for this dimension, "
+        "2024 annual data is used automatically."
     )
     tears_meta = MSDS_METRICS["3rd/4th degree perineal tears"]
     tears_data = cqim_for_dim(tears_meta["dim"])
