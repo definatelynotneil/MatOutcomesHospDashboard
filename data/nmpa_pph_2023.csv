@@ -1,0 +1,182 @@
+# NMPA 2023 Trust-Level Postpartum Haemorrhage (PPH) Data â€” TEMPLATE,,,,,,,
+#,,,,,,,
+# Source: National Maternity and Perinatal Audit (NMPA) 2023 Clinical Report,,,,,,,
+#         RCOG / RCM / RCPCH / HQIP,,,,,,,
+#         https://www.npeu.ox.ac.uk/nmpa/reports,,,,,,,
+#,,,,,,,
+# Definition: Major obstetric haemorrhage â€” estimated blood loss â‰¥1,500 ml,,,,,,
+#             at or after delivery.,,,,,,,
+# Coverage:   NHS trust deliveries in England, 2021â€“22.,,,,,,
+# Unit:       Rate = Numerator / Denominator * 1000  (per 1,000 maternities),,,,,,
+#,,,,,,,
+# HOW TO POPULATE THIS FILE:,,,,,,,
+#   1. Download the NMPA 2023 Clinical Report trust-level data from the NMPA,,,,,,,
+#      website (https://www.npeu.ox.ac.uk/nmpa/reports) or the HQIP portal.,,,,,,,
+#   2. For each trust, record:,,,,,,
+#        Org_Name   â€” Full NHS trust name (any case),,,,,,,
+#        Org_Code   â€” NHS ODS code (e.g. RQ3),,,,,,,
+#        Numerator  â€” Number of PPH cases (blood loss â‰¥1,500 ml),,,,,,
+#        Denominator â€” Total maternities at that trust,,,,,,,
+#        Rate       â€” Numerator / Denominator * 1000,,,,,,,
+#   3. Remove the comment lines (# ...) above before saving.,,,,,,,
+"#   4. Restart the dashboard (or click ""Clear cached data"" in the sidebar).",,,,,,,
+#,,,,,,,
+Country,Organisation name,Organisation code,Numerator,Denominator,Unadjusted rate,Adjusted rate,GB mean
+England,Airedale NHS Foundation Trust,RCF,42,1539,2.70%,2.80%,3.40%
+England,Ashford and St Peter's Hospitals NHS Foundation Trust,RTK,123,2559,4.80%,4.70%,3.40%
+England,"Barking, Havering and Redbridge University Hospitals NHS Trust",RF4,188,6581,2.90%,3.00%,3.40%
+England,Barnsley Hospital NHS Foundation Trust,RFF,60,2156,2.80%,2.90%,3.40%
+England,Barts Health NHS Trust,R1H,,,,,3.40%
+England,Basildon and Thurrock University Hospitals NHS Foundation Trust,RDD,,,,,
+England,Bedford Hospital NHS Trust,RC1,,,,,
+England,Bedfordshire Hospitals NHS Foundation Trust,RC9,,,,,3.40%
+England,Birmingham Women's and Children's NHS Foundation Trust,RQ3,221,5404,4.10%,4.40%,3.40%
+England,Blackpool Teaching Hospitals NHS Foundation Trust,RXL,90,2214,4.10%,4.30%,3.40%
+England,Bolton NHS Foundation Trust,RMC,169,4684,3.60%,3.80%,3.40%
+England,Bradford Teaching Hospitals NHS Foundation Trust,RAE,133,4451,3.00%,3.50%,3.40%
+England,Brighton and Sussex University Hospitals NHS Trust,RXH,,,,,
+England,Buckinghamshire Healthcare NHS Trust,RXQ,139,3622,3.80%,3.70%,3.40%
+England,Burton Hospitals NHS Foundation Trust,RJF,,,,,
+England,Calderdale and Huddersfield NHS Foundation Trust,RWY,,,,,3.40%
+England,Cambridge University Hospitals NHS Foundation Trust,RGT,214,4056,5.30%,4.70%,3.40%
+England,Central Manchester NHS Foundation Trust,RW3,,,,,
+England,Chelsea and Westminster Hospital NHS Foundation Trust,RQM,,,,,3.40%
+England,Chesterfield Royal Hospital NHS Foundation Trust,RFS,,,,,3.40%
+England,City Hospitals Sunderland NHS Foundation Trust,RLN,,,,,
+England,Countess of Chester Hospital NHS Foundation Trust,RJR,84,1738,4.80%,5.00%,3.40%
+England,County Durham and Darlington NHS Foundation Trust,RXP,133,3697,3.60%,3.80%,3.40%
+England,Croydon Health Services NHS Trust,RJ6,74,2326,3.20%,3.40%,3.40%
+England,Dartford and Gravesham NHS Trust,RN7,153,4282,3.60%,3.60%,3.40%
+England,Doncaster and Bassetlaw Teaching Hospitals NHS Foundation Trust,RP5,,,,,3.40%
+England,Dorset County Hospital NHS Foundation Trust,RBD,50,1304,3.80%,3.80%,3.40%
+England,East and North Hertfordshire NHS Trust,RWH,,,,,3.40%
+England,East Cheshire NHS Trust,RJN,20,558,3.60%,3.40%,3.40%
+England,East Kent Hospitals University NHS Foundation Trust,RVV,172,4842,3.60%,3.50%,3.40%
+England,East Lancashire Hospitals NHS Trust,RXR,179,5223,3.40%,3.80%,3.40%
+England,East Suffolk and North Essex NHS Foundation Trust,RDE,197,5420,3.60%,3.70%,3.40%
+England,East Sussex Healthcare NHS Trust,RXC,55,2231,2.50%,2.40%,3.40%
+England,Epsom and St Helier University Hospitals NHS Trust,RVR,63,3098,2.00%,2.00%,3.40%
+England,Frimley Health NHS Foundation Trust,RDU,,,,,3.40%
+England,Gateshead Health NHS Foundation Trust,RR7,111,1715,6.50%,6.60%,3.40%
+England,George Eliot Hospital NHS Trust,RLT,68,1962,3.50%,3.60%,3.40%
+England,Gloucestershire Hospitals NHS Foundation Trust,RTE,,,,,3.40%
+England,Great Western Hospitals NHS Foundation Trust,RN3,116,3538,3.30%,3.30%,3.40%
+England,Guy's and St Thomas' NHS Foundation Trust,RJ1,161,4130,3.90%,3.60%,3.40%
+England,Hampshire Hospitals NHS Foundation Trust,RN5,146,4301,3.40%,3.30%,3.40%
+England,Harrogate and District NHS Foundation Trust,RCD,41,1384,3.00%,2.70%,3.40%
+England,Heart of England NHS Foundation Trust,RR1,,,,,
+England,Hinchingbrooke Health Care NHS Trust,RQQ,,,,,
+England,Homerton Healthcare NHS Foundation Trust,RQX,120,4306,2.80%,2.70%,3.40%
+England,Hull University Teaching Hospitals NHS Trust,RWA,,,,,3.40%
+England,Imperial College Healthcare NHS Trust,RYJ,227,7981,2.80%,2.70%,3.40%
+England,Ipswich Hospital NHS Trust,RGQ,,,,,
+England,Isle of Wight NHS Trust,R1F,29,876,3.30%,3.50%,3.40%
+England,James Paget University Hospitals NHS Foundation Trust,RGP,56,1629,3.40%,3.60%,3.40%
+England,Kettering General Hospital NHS Foundation Trust,RNQ,74,2954,2.50%,2.50%,3.40%
+England,King's College Hospital NHS Foundation Trust,RJZ,190,4881,3.90%,3.60%,3.40%
+England,Kingston Hospital NHS Foundation Trust,RAX,110,3650,3.00%,2.70%,3.40%
+England,Lancashire Teaching Hospitals NHS Foundation Trust,RXN,116,3735,3.10%,3.20%,3.40%
+England,Leeds Teaching Hospitals NHS Trust,RR8,,,,,3.40%
+England,Lewisham and Greenwich NHS Trust,RJ2,209,5700,3.70%,3.50%,3.40%
+England,Liverpool Women's NHS Foundation Trust,REP,226,6476,3.50%,3.40%,3.40%
+England,London North West University Healthcare NHS Trust,R1K,,,,,3.40%
+England,Maidstone and Tunbridge Wells NHS Trust,RWF,171,5311,3.20%,3.00%,3.40%
+England,Manchester University NHS Foundation Trust,R0A,,,,,3.40%
+England,Medway NHS Foundation Trust,RPA,184,4225,4.40%,4.30%,3.40%
+England,Mid and South Essex NHS Foundation Trust,RAJ,,,,,3.40%
+England,Mid Cheshire Hospitals NHS Foundation Trust,RBT,116,2719,4.30%,4.20%,3.40%
+England,Mid Essex Hospital Services NHS Trust,RQ8,,,,,
+England,Milton Keynes University Hospital NHS Foundation Trust,RD8,,,,,3.40%
+England,Norfolk and Norwich University Hospitals NHS Foundation Trust,RM1,130,4546,2.90%,2.80%,3.40%
+England,North Bristol NHS Trust,RVJ,147,4923,3.00%,2.80%,3.40%
+England,North Cumbria University Hospitals NHS Trust,RNL,,,,,
+England,North Middlesex University Hospital NHS Trust,RAP,100,3151,3.20%,3.40%,3.40%
+England,North Tees and Hartlepool NHS Foundation Trust,RVW,,,,,3.40%
+England,North West Anglia NHS Foundation Trust,RGN,,,,,3.40%
+England,Northampton General Hospital NHS Trust,RNS,86,3986,2.20%,2.10%,3.40%
+England,Northern Devon Healthcare NHS Trust,RBZ,,,,,
+England,Northern Lincolnshire and Goole NHS Foundation Trust,RJL,,,,,3.40%
+England,Northumbria Healthcare NHS Foundation Trust,RTF,,,,,3.40%
+England,Nottingham University Hospitals NHS Trust,RX1,,,,,3.40%
+England,Oxford University Hospitals NHS Foundation Trust,RTH,,,,,3.40%
+England,Poole Hospital NHS Foundation Trust,RD3,,,,,
+England,Portsmouth Hospitals University NHS Trust,RHU,143,4528,3.20%,3.20%,3.40%
+England,Royal Berkshire NHS Foundation Trust,RHW,,,,,3.40%
+England,Royal Cornwall Hospitals NHS Trust,REF,79,3498,2.30%,2.20%,3.40%
+England,Royal Devon University Healthcare NHS Foundation Trust,RH8,95,3867,2.50%,2.30%,3.40%
+England,Royal Free London NHS Foundation Trust,RAL,188,5721,3.30%,3.20%,3.40%
+England,Royal Surrey County Hospital NHS Foundation Trust,RA2,86,2677,3.20%,2.90%,3.40%
+England,Royal United Hospitals Bath NHS Foundation Trust,RD1,130,3494,3.70%,3.70%,3.40%
+England,Salisbury NHS Foundation Trust,RNZ,58,1866,3.10%,2.90%,3.40%
+England,Sandwell and West Birmingham Hospitals NHS Trust,RXK,117,4635,2.50%,2.70%,3.40%
+England,Sheffield Teaching Hospitals NHS Foundation Trust,RHQ,197,5260,3.70%,3.90%,3.40%
+England,Sherwood Forest Hospitals NHS Foundation Trust,RK5,110,3010,3.70%,3.60%,3.40%
+England,South Tees Hospitals NHS Foundation Trust,RTR,105,3939,2.70%,2.90%,3.40%
+England,South Tyneside and Sunderland NHS Foundation Trust,R0B,79,2664,3.00%,3.40%,3.40%
+England,South Tyneside NHS Foundation Trust,RE9,,,,,
+England,South Warwickshire NHS Foundation Trust,RJC,103,2774,3.70%,3.40%,3.40%
+England,Southport and Ormskirk Hospital NHS Trust,RVY,,,,,
+England,St George's University Hospitals NHS Foundation Trust,RJ7,189,3985,4.70%,4.50%,3.40%
+England,St Helens and Knowsley Teaching Hospitals NHS Trust,RBN,77,3944,2.00%,2.00%,3.40%
+England,Stockport NHS Foundation Trust,RWJ,85,2591,3.30%,3.10%,3.40%
+England,Surrey and Sussex Healthcare NHS Trust,RTP,138,4066,3.40%,3.30%,3.40%
+England,Tameside and Glossop Integrated Care NHS Foundation Trust,RMP,64,1986,3.20%,3.40%,3.40%
+England,Taunton and Somerset NHS Foundation Trust,RBA,,,,,
+England,The Dudley Group NHS Foundation Trust,RNA,112,3537,3.20%,3.40%,3.40%
+England,The Hillingdon Hospitals NHS Foundation Trust,RAS,105,2994,3.50%,3.70%,3.40%
+England,The Mid Yorkshire Hospitals NHS Trust,RXF,204,4937,4.10%,4.40%,3.40%
+England,The Newcastle upon Tyne Hospitals NHS Foundation Trust,RTD,218,4925,4.40%,4.60%,3.40%
+England,The Pennine Acute Hospitals NHS Trust,RW6,,,,,
+England,The Princess Alexandra Hospital NHS Trust,RQW,,,,,3.40%
+England,The Queen Elizabeth Hospital King's Lynn NHS Foundation Trust,RCX,48,1568,3.10%,3.20%,3.40%
+England,The Rotherham NHS Foundation Trust,RFR,,,,,3.40%
+England,The Royal Bournemouth and Christchurch Hospitals NHS Foundation Trust,RDZ,,,,,
+England,The Royal Wolverhampton NHS Trust,RL4,147,4629,3.20%,3.30%,3.40%
+England,The Shrewsbury and Telford Hospital NHS Trust,RXW,,,,,3.40%
+England,Torbay and South Devon NHS Foundation Trust,RA9,49,1600,3.10%,3.20%,3.40%
+England,United Lincolnshire Hospitals NHS Trust,RWD,157,4162,3.80%,3.90%,3.40%
+England,University College London Hospitals NHS Foundation Trust,RRV,,,,,3.40%
+England,University Hospital South Manchester NHS Foundation Trust,RM2,,,,,
+England,University Hospital Southampton NHS Foundation Trust,RHM,182,4318,4.20%,4.00%,3.40%
+England,University Hospitals Birmingham NHS Foundation Trust,RRK,209,7581,2.80%,3.00%,3.40%
+England,University Hospitals Bristol and Weston NHS Foundation Trust,RA7,143,3381,4.20%,3.90%,3.40%
+England,University Hospitals Coventry and Warwickshire NHS Trust,RKB,,,,,3.40%
+England,University Hospitals of Leicester NHS Trust,RWE,325,9197,3.50%,3.60%,3.40%
+England,University Hospitals of Morecambe Bay NHS Foundation Trust,RTX,101,2485,4.10%,4.00%,3.40%
+England,University Hospitals of North Midlands NHS Trust,RJE,,,,,3.40%
+England,University Hospitals of Derby and Burton NHS Foundation Trust,RTG,249,6705,3.70%,3.80%,3.40%
+England,University Hospitals Plymouth NHS Trust,RK9,,,,,3.40%
+England,University Hospitals Sussex NHS Foundation Trust,RYR,256,7135,3.60%,3.30%,3.40%
+England,Walsall Healthcare NHS Trust,RBK,90,3292,2.70%,3.10%,3.40%
+England,Warrington and Halton Hospitals NHS Foundation Trust,RWW,98,2218,4.40%,4.30%,3.40%
+England,West Hertfordshire Teaching Hospitals NHS Trust,RWG,,,,,3.40%
+England,West Suffolk NHS Foundation Trust,RGR,97,2038,4.80%,4.90%,3.40%
+England,Weston Area Health NHS Trust,RA3,,,,,
+England,Whittington Health NHS Trust,RKE,90,2324,3.90%,3.70%,3.40%
+England,Wirral University Teaching Hospital NHS Foundation Trust,RBL,,,,,3.40%
+England,Worcestershire Acute Hospitals NHS Trust,RWP,138,3821,3.60%,3.60%,3.40%
+England,"Wrightington, Wigan and Leigh NHS Foundation Trust",RRF,73,1877,3.90%,3.80%,3.40%
+England,Wye Valley NHS Trust,RLQ,47,1402,3.40%,3.30%,3.40%
+England,Yeovil District Hospital NHS Foundation Trust,RA4,,,,,
+England,York and Scarborough Teaching Hospitals NHS Foundation Trust,RCB,,,,,3.40%
+Scotland,NHS Ayrshire and Arran,S08000015,,,,,3.40%
+Scotland,NHS Borders,S08000016,,,,,3.40%
+Scotland,NHS Dumfries and Galloway,S08000017,,,,,3.40%
+Scotland,NHS Fife,S08000029,,,,,3.40%
+Scotland,NHS Forth Valley,S08000019,,,,,3.40%
+Scotland,NHS Grampian,S08000020,,,,,3.40%
+Scotland,NHS Greater Glasgow and Clyde,S08000031,,,,,3.40%
+Scotland,NHS Highland,S08000022,,,,,3.40%
+Scotland,NHS Lanarkshire,S08000032,,,,,3.40%
+Scotland,NHS Lothian,S08000024,,,,,3.40%
+Scotland,NHS Orkney,S08000025,,,,,3.40%
+Scotland,NHS Shetland,S08000026,,,,,3.40%
+Scotland,NHS Tayside,S08000030,,,,,3.40%
+Scotland,NHS Western Isles,S08000028,,,,,
+Wales,Aneurin Bevan University Local Health Board,7A6,171,4918,3.50%,3.20%,3.40%
+Wales,Betsi Cadwaladr University Local Health Board,7A1,164,5211,3.10%,3.10%,3.40%
+Wales,Cardiff and Vale University Local Health Board,7A4,157,4630,3.40%,3.40%,3.40%
+Wales,Cwm Taf Morgannwg University Local Health Board,7A5,123,4359,2.80%,2.90%,3.40%
+Wales,Hywel Dda University Local Health Board,7A2,73,2818,2.60%,2.50%,3.40%
+Wales,Powys Teaching Local Health Board,7A7,,,,,3.40%
+Wales,Swansea Bay University Local Health Board,7A3,88,3095,2.80%,2.80%,3.40%

@@ -564,6 +564,76 @@ def get_msds_trust_list(year: int) -> list[str]:
 # MBRRACE-UK AUTO-LOAD
 # ---------------------------------------------------------------------------
 
+def load_nmpa_pph() -> pd.DataFrame:
+    """
+    Auto-load NMPA 2023 trust-level PPH data from data/nmpa_pph_2023.csv.
+
+    Accepts the NMPA export format with columns:
+        Country, Organisation name, Organisation code,
+        Numerator, Denominator, Unadjusted rate, Adjusted rate, GB mean
+
+    Rates in the source file are percentages (e.g. "2.70%"); these are
+    converted to per-1,000 maternities (multiply by 10).  Rate is also
+    computed directly from Numerator/Denominator * 1000 for trusts that
+    submitted counts.
+
+    Only England rows are returned.  Rows without a valid Denominator are
+    dropped (trusts that did not submit data to NMPA).
+
+    Source: National Maternity and Perinatal Audit (NMPA) 2023 Clinical Report,
+    RCOG / RCM / RCPCH / HQIP.  Available from https://www.npeu.ox.ac.uk/nmpa
+    """
+    candidates = sorted(DATA_DIR.glob("nmpa_pph*.csv"))
+    if not candidates:
+        return pd.DataFrame()
+    try:
+        # Strip lines whose text (ignoring an opening quote) starts with '#'
+        with open(candidates[0], encoding="utf-8-sig", errors="replace") as f:
+            lines = [
+                ln for ln in f
+                if not ln.lstrip('"').lstrip("'").startswith("#")
+            ]
+        if not lines:
+            return pd.DataFrame()
+
+        df = pd.read_csv(io.StringIO("".join(lines)))
+
+        # Normalise column names to dashboard standard
+        df = df.rename(columns={
+            "Organisation name": "Org_Name",
+            "Organisation code": "Org_Code",
+        })
+
+        # Keep England rows only
+        if "Country" in df.columns:
+            df = df[df["Country"].str.strip() == "England"].copy()
+
+        # Parse numeric columns
+        df["Numerator"]   = pd.to_numeric(df.get("Numerator"),   errors="coerce")
+        df["Denominator"] = pd.to_numeric(df.get("Denominator"), errors="coerce")
+
+        # Convert %-formatted rate columns to per 1,000
+        for col in ["Unadjusted rate", "Adjusted rate", "GB mean"]:
+            if col in df.columns:
+                df[col] = (
+                    pd.to_numeric(
+                        df[col].astype(str).str.rstrip("%"), errors="coerce"
+                    ) * 10  # percent → per 1,000
+                )
+
+        # Compute Rate per 1,000 from raw counts (preferred over reported %)
+        valid = df["Denominator"] > 0
+        df.loc[valid, "Rate"] = (
+            df.loc[valid, "Numerator"] / df.loc[valid, "Denominator"] * 1000
+        )
+
+        # Drop rows with no denominator (trust did not submit data)
+        df = df.dropna(subset=["Denominator", "Rate"])
+        return df.reset_index(drop=True)
+    except Exception:
+        return pd.DataFrame()
+
+
 def load_mbrrace_local() -> pd.DataFrame:
     """
     Auto-load MBRRACE trust-level perinatal mortality CSV from the data/ folder.

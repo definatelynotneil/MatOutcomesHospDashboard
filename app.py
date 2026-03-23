@@ -35,6 +35,7 @@ from data_loaders import (
     get_msds_trust_list,
     load_mbrrace_local,
     load_msds_year,
+    load_nmpa_pph,
 )
 
 # ---------------------------------------------------------------------------
@@ -94,6 +95,11 @@ def _load_trust_list(year: int) -> list[str]:
 @st.cache_data(show_spinner=False)
 def _load_mbrrace() -> pd.DataFrame:
     return load_mbrrace_local()
+
+
+@st.cache_data(show_spinner=False)
+def _load_nmpa_pph() -> pd.DataFrame:
+    return load_nmpa_pph()
 
 
 # ---------------------------------------------------------------------------
@@ -514,7 +520,8 @@ if _fallback_year in MSDS_URLS:
 with st.spinner(f"Computing annual metrics from MSDS {annual_year} data…"):
     cqim_df = _load_cqims(annual_year)
 
-mbrrace_df = _load_mbrrace()
+mbrrace_df   = _load_mbrrace()
+nmpa_pph_df  = _load_nmpa_pph()
 
 
 def cqim_for_dim(dim_name: str) -> pd.DataFrame:
@@ -890,29 +897,73 @@ with tab_morbidity:
         st.caption("Perineal trauma data not available for this period.")
 
     st.markdown("---")
-    st.markdown("#### Breastfeeding Initiation")
-    st.caption("Proportion of babies receiving maternal or donor breast milk at first feed.")
-    bf_meta = MSDS_METRICS["Breastfeeding initiation"]
-    bf_data = cqim_for_dim(bf_meta["dim"])
-    if not bf_data.empty:
+    st.markdown("#### Postpartum Haemorrhage (≥1,500 ml)")
+    st.caption(
+        "Major obstetric haemorrhage: estimated blood loss ≥1,500 ml at or after delivery, "
+        "per 1,000 maternities. "
+        "PPH is not reported in the current MSDS experimental data format (2024 onwards); "
+        "trust-level rates shown here are from the **National Maternity and Perinatal Audit "
+        "(NMPA) 2023 Clinical Report** (RCOG / RCM / RCPCH / HQIP), covering deliveries in "
+        "England 2021–22. "
+        "The funnel chart uses unadjusted rates (raw counts). "
+        "NMPA also provides case-mix adjusted rates (for maternal age, deprivation, "
+        "BMI, and complications); adjusted rates are noted in the trust detail table below."
+    )
+
+    if not nmpa_pph_df.empty and "Rate" in nmpa_pph_df.columns and "Denominator" in nmpa_pph_df.columns:
+        name_col = "Org_Name" if "Org_Name" in nmpa_pph_df.columns else nmpa_pph_df.columns[0]
+        pph_plot = nmpa_pph_df.dropna(subset=["Rate", "Denominator"]).copy()
         fig = make_funnel_chart(
-            bf_data, "Rate_pct", "Denominator", "Org_Name", focus_fragment,
-            f"Breastfeeding initiation — {_metric_label(bf_data)}",
-            bf_meta["unit"], higher_is_worse=False, comparators=comparators or None,
+            pph_plot, "Rate", "Denominator", name_col, focus_fragment,
+            "Postpartum haemorrhage (≥1,500 ml) — NMPA 2023",
+            "per 1,000 maternities", higher_is_worse=True, comparators=comparators or None,
         )
         if fig:
             st.plotly_chart(fig, use_container_width=True)
+            n_trusts_pph = pph_plot[name_col].nunique()
             st.markdown(
-                data_note("MSDS Provider Level, NHS Digital",
-                          _metric_label(bf_data), _n_trusts(bf_data)),
+                data_note(
+                    "National Maternity and Perinatal Audit (NMPA) 2023, RCOG/RCM/RCPCH/HQIP",
+                    "2021–22",
+                    n_trusts_pph,
+                ),
                 unsafe_allow_html=True,
             )
 
+            # Focus-trust detail row
+            focus_pph = pph_plot[
+                pph_plot[name_col].str.upper().str.contains(
+                    focus_fragment.upper(), na=False)
+            ]
+            if not focus_pph.empty:
+                row = focus_pph.iloc[0]
+                detail = {
+                    "Org": row.get(name_col, ""),
+                    "Maternities": int(row["Denominator"]),
+                    "PPH cases": int(row["Numerator"]) if pd.notna(row.get("Numerator")) else "—",
+                    "Unadjusted rate (per 1,000)": f"{row['Rate']:.1f}",
+                }
+                if "Adjusted rate" in row.index and pd.notna(row.get("Adjusted rate")):
+                    detail["Adjusted rate (per 1,000)"] = f"{row['Adjusted rate']:.1f}"
+                if "GB mean" in row.index and pd.notna(row.get("GB mean")):
+                    detail["GB mean (per 1,000)"] = f"{row['GB mean']:.1f}"
+                st.dataframe(pd.DataFrame([detail]).set_index("Org"), use_container_width=True)
+        else:
+            st.caption("Insufficient trust data to draw funnel chart (fewer than 3 trusts with valid data).")
+    else:
+        st.info(
+            "**NMPA PPH data not loaded.**  \n"
+            "To display this chart, obtain the trust-level major obstetric haemorrhage data "
+            "from the [NMPA 2023 Clinical Report](https://www.npeu.ox.ac.uk/nmpa/reports) "
+            "and save it as `data/nmpa_pph_2023.csv` with columns:  \n"
+            "`Org_Name`, `Org_Code`, `Numerator` (PPH cases), `Denominator` (total maternities), "
+            "`Rate` (per 1,000 maternities).  \n"
+            "Data source: RCOG / RCM / RCPCH / HQIP."
+        )
+
     st.markdown("---")
     st.caption(
-        "Postpartum haemorrhage (≥1,500 ml) and VBAC rate are not available "
-        "in the MSDS experimental data format (2024 onwards). These were "
-        "reported under the previous CQIM publication format."
+        "Note: VBAC rate is not available in the MSDS experimental data format (2024 onwards)."
     )
 
 

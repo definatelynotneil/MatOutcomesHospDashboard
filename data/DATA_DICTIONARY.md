@@ -202,7 +202,46 @@ Area types:
 
 ---
 
-## 5. CQC Inspection Ratings (Care Quality Commission)
+## 5. NMPA 2023 — Postpartum Haemorrhage (RCOG / RCM / RCPCH / HQIP)
+
+| Property | Value |
+|---|---|
+| **Cached as** | Manual — `data/nmpa_pph_2023.csv` |
+| **Source** | National Maternity and Perinatal Audit (NMPA) 2023 Clinical Report |
+| **Publisher** | RCOG / RCM / RCPCH / HQIP |
+| **Report URL** | https://www.npeu.ox.ac.uk/nmpa/reports |
+| **Coverage** | NHS trust deliveries in England, 2021–22 |
+| **Granularity** | NHS Trust (provider) level |
+| **Update frequency** | Annual |
+| **Definition** | Major obstetric haemorrhage: estimated blood loss ≥1,500 ml at or after delivery |
+| **Unit** | Rate per 1,000 maternities |
+
+### CSV Column Reference (NMPA export format)
+
+| Column | Description |
+|---|---|
+| `Country` | `England`, `Scotland`, or `Wales` — loader filters to England only |
+| `Organisation name` | Full trust name (mixed case) — mapped to `Org_Name` |
+| `Organisation code` | NHS ODS code (e.g. `RQ3`) — mapped to `Org_Code` |
+| `Numerator` | PPH cases (blood loss ≥1,500 ml); blank = trust did not submit |
+| `Denominator` | Total maternities; blank = trust did not submit |
+| `Unadjusted rate` | Raw rate as a percentage (e.g. `2.70%`); converted to per 1,000 by loader |
+| `Adjusted rate` | Case-mix adjusted rate (maternal age, deprivation, BMI, complications); `%` → per 1,000 |
+| `GB mean` | Great Britain mean rate; `%` → per 1,000 |
+
+The loader computes `Rate` per 1,000 directly from `Numerator / Denominator * 1000`.
+Rows with no valid `Denominator` (non-submitting trusts) are dropped.
+Lines beginning with `#` (or `"#`) are treated as comments and ignored.
+
+### Why not MSDS?
+
+PPH (blood loss ≥1,500 ml) was reported in the previous MSDS CQIM publication format
+under dimension `CQIMPPH`. It is not included in the MSDS experimental data format
+used from 2024 onwards.
+
+---
+
+## 6. CQC Inspection Ratings (Care Quality Commission)
 
 | Property | Value |
 |---|---|
