@@ -634,15 +634,26 @@ def load_nmpa_pph() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def load_mbrrace_local() -> pd.DataFrame:
+def load_mbrrace_local(year: int = 2024, exclude_congenital: bool = False) -> pd.DataFrame:
     """
     Auto-load MBRRACE trust-level perinatal mortality CSV from the data/ folder.
-    Looks for files matching perinatal-mortality-*.csv or mbrrace-*.csv.
+
+    year: reporting year (2023, 2024, …)
+    exclude_congenital: if True, load the "excluding congenital anomalies" variant.
     """
-    candidates = (
-        sorted(DATA_DIR.glob("perinatal-mortality-*.csv"))
-        + sorted(DATA_DIR.glob("mbrrace-*.csv"))
-    )
+    if exclude_congenital:
+        pattern = f"perinatal-mortality-rates-excluding-congenital-anomalies-{year}-*.csv"
+    else:
+        # Intentionally specific to avoid accidentally picking up "excluding" files
+        pattern = f"perinatal-mortality-rates-{year}-*.csv"
+
+    candidates = sorted(DATA_DIR.glob(pattern))
+    if not candidates:
+        # Fallback: any perinatal / mbrrace file
+        candidates = (
+            sorted(DATA_DIR.glob("perinatal-mortality-rates-[0-9]*.csv"))
+            + sorted(DATA_DIR.glob("mbrrace-*.csv"))
+        )
     if not candidates:
         return pd.DataFrame()
     try:
@@ -650,6 +661,10 @@ def load_mbrrace_local() -> pd.DataFrame:
         for col in df.columns:
             if any(k in col.lower() for k in ("rate", "births", "deaths", "total")):
                 df[col] = pd.to_numeric(df[col], errors="coerce")
+        # -1 is the MBRRACE suppression sentinel for small-number cells
+        rate_cols = [c for c in df.columns if "rate" in c.lower()]
+        for col in rate_cols:
+            df.loc[df[col] == -1, col] = float("nan")
         return df
     except Exception:
         return pd.DataFrame()

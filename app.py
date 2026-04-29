@@ -93,8 +93,8 @@ def _load_trust_list(year: int) -> list[str]:
 
 
 @st.cache_data(show_spinner=False)
-def _load_mbrrace() -> pd.DataFrame:
-    return load_mbrrace_local()
+def _load_mbrrace(year: int = 2024, exclude_congenital: bool = False) -> pd.DataFrame:
+    return load_mbrrace_local(year=year, exclude_congenital=exclude_congenital)
 
 
 @st.cache_data(show_spinner=False)
@@ -520,7 +520,7 @@ if _fallback_year in MSDS_URLS:
 with st.spinner(f"Computing annual metrics from MSDS {annual_year} data…"):
     cqim_df = _load_cqims(annual_year)
 
-mbrrace_df   = _load_mbrrace()
+mbrrace_df   = _load_mbrrace(year=2024, exclude_congenital=False)
 nmpa_pph_df  = _load_nmpa_pph()
 
 
@@ -565,7 +565,7 @@ with tab_overview:
         "grey = within expected range."
     )
     st.caption(
-        f"Perinatal mortality: MBRRACE-UK 2023 · "
+        f"Perinatal mortality: MBRRACE-UK 2024 (crude rates) · "
         f"All other indicators: MSDS Provider Level Experimental Data, NHS Digital · "
         f"Period: {annual_label}"
     )
@@ -616,7 +616,7 @@ with tab_overview:
                 "N (trust)": int(trust_n) if not np.isnan(trust_n) else None,
                 "_css": css,
                 "_status": lstr,
-                "_source": "MBRRACE-UK 2023",
+                "_source": "MBRRACE-UK 2024",
             })
 
     # MSDS rows (excluding filtered domains)
@@ -692,66 +692,99 @@ with tab_overview:
 with tab_perinatal:
     st.subheader("Perinatal Mortality")
 
+    # ── Controls ────────────────────────────────────────────────────────────
+    _ctrl_cols = st.columns(3)
+    with _ctrl_cols[0]:
+        _mb_year = st.radio(
+            "Data year", [2024, 2023], horizontal=True, index=0, key="mb_year"
+        )
+    with _ctrl_cols[1]:
+        _mb_rate_type = st.radio(
+            "Rate type", ["Adjusted", "Crude"], horizontal=True, index=0,
+            key="mb_rate_type",
+            help="Adjusted = stabilised rates (Bayesian case-mix adjustment for small numbers). "
+                 "Crude = unadjusted rates.",
+        )
+    with _ctrl_cols[2]:
+        _mb_excl = st.checkbox(
+            "Exclude congenital anomalies", value=False, key="mb_excl",
+            help="Shows rates after removing deaths where a lethal congenital anomaly was the "
+                 "primary cause, enabling fairer comparison between units.",
+        )
+
+    # Load data for selected combination
+    _perinatal_df = _load_mbrrace(year=_mb_year, exclude_congenital=_mb_excl)
+
+    # Column prefix depends on rate type selection
+    _rate_prefix  = "Stabilised" if _mb_rate_type == "Adjusted" else "Crude"
+    _rate_label   = "adjusted (stabilised)" if _mb_rate_type == "Adjusted" else "crude (unadjusted)"
+    _excl_label   = ", excluding congenital anomalies" if _mb_excl else ""
+    _period_label = f"MBRRACE-UK {_mb_year}{_excl_label}"
+
     # MBRRACE-UK — primary source for trust-level mortality rates
-    if not mbrrace_df.empty:
+    if not _perinatal_df.empty:
         st.markdown("### MBRRACE-UK Trust-Level Perinatal Mortality")
         st.caption(
-            "Source: MBRRACE-UK Perinatal Mortality Data Viewer (timms.le.ac.uk) · "
-            "Period: 2023 · Organisation type: NHS Trust (England) · "
-            "Crude rates per 1,000 births"
+            f"Source: MBRRACE-UK Perinatal Mortality Data Viewer (timms.le.ac.uk) · "
+            f"Period: {_mb_year} · Organisation type: NHS Trust (England) · "
+            f"{_mb_rate_type} rates per 1,000 births{_excl_label}"
         )
 
         _mbrrace_configs = [
-            ("Stillbirth",              "TotalBirths",     "CrudeStillbirthRate",
+            ("Stillbirth",
+             "TotalBirths",     f"{_rate_prefix}StillbirthRate",
              "OrganisationName", "per 1,000 births"),
-            ("Neonatal death",          "TotalLiveBirths", "CrudeNeonatalDeathRate",
+            ("Neonatal death",
+             "TotalLiveBirths", f"{_rate_prefix}NeonatalDeathRate",
              "OrganisationName", "per 1,000 live births"),
-            ("Extended perinatal death","TotalBirths",     "CrudePerinatalDeathRate",
+            ("Extended perinatal death",
+             "TotalBirths",     f"{_rate_prefix}PerinatalDeathRate",
              "OrganisationName", "per 1,000 births"),
         ]
         for label, dcol, rcol, ncol, unit in _mbrrace_configs:
-            if rcol not in mbrrace_df.columns:
+            if rcol not in _perinatal_df.columns:
                 continue
-            plot_df = mbrrace_df.dropna(subset=[rcol, dcol]).copy()
+            plot_df = _perinatal_df.dropna(subset=[rcol, dcol]).copy()
             if "CountryName" in plot_df.columns:
                 eng = plot_df[plot_df["CountryName"].str.upper() == "ENGLAND"]
                 if not eng.empty:
                     plot_df = eng
             fig = make_funnel_chart(
                 plot_df, rcol, dcol, ncol, focus_fragment,
-                f"{label} rate — MBRRACE-UK 2023",
+                f"{label} rate ({_rate_label}) — {_period_label}",
                 unit, higher_is_worse=True, comparators=comparators or None,
             )
             if fig:
                 st.plotly_chart(fig, use_container_width=True)
                 st.caption(
-                    data_note("MBRRACE-UK", "2023", _n_trusts(plot_df))
+                    data_note("MBRRACE-UK", str(_mb_year), _n_trusts(plot_df))
                     + " &nbsp;|&nbsp; England NHS trusts only",
                     unsafe_allow_html=True,
                 )
 
         # Focus trust summary
-        focus_mb = mbrrace_df[
-            mbrrace_df["OrganisationName"]
+        focus_mb = _perinatal_df[
+            _perinatal_df["OrganisationName"]
             .str.upper().str.contains(focus_fragment.upper(), na=False)
-        ] if "OrganisationName" in mbrrace_df.columns else pd.DataFrame()
+        ] if "OrganisationName" in _perinatal_df.columns else pd.DataFrame()
 
         if not focus_mb.empty:
             mb_row = focus_mb.iloc[0]
-            st.markdown(f"**{mb_row['OrganisationName']}**")
+            st.markdown(f"**{mb_row['OrganisationName']} — {_period_label}**")
             mc = st.columns(3)
             for ci, (lbl, col) in enumerate([
-                ("Stillbirth rate",                "CrudeStillbirthRate"),
-                ("Neonatal mortality rate",         "CrudeNeonatalDeathRate"),
-                ("Extended perinatal mortality rate","CrudePerinatalDeathRate"),
+                ("Stillbirth rate",                 f"{_rate_prefix}StillbirthRate"),
+                ("Neonatal mortality rate",          f"{_rate_prefix}NeonatalDeathRate"),
+                ("Extended perinatal mortality rate",f"{_rate_prefix}PerinatalDeathRate"),
             ]):
                 if col in mb_row.index and not pd.isna(mb_row[col]):
                     mc[ci].metric(lbl, f"{mb_row[col]:.2f} per 1,000")
     else:
         st.info(
-            "MBRRACE trust-level data not found. "
-            "Place `perinatal-mortality-rates-2023-trusthealth-board.csv` in the "
-            "data/ folder, or upload via the MBRRACE Data tab."
+            f"MBRRACE trust-level data not found for {_mb_year}"
+            + (" (excluding congenital anomalies)" if _mb_excl else "")
+            + ". Place the corresponding CSV in the data/ folder, "
+            "or upload via the MBRRACE Data tab."
         )
 
     st.markdown("---")
@@ -1085,14 +1118,15 @@ with tab_mbrrace:
     st.subheader("MBRRACE-UK Perinatal Mortality Data")
 
     if not mbrrace_df.empty:
+        _mb_report_year = int(mbrrace_df["ReportYear"].iloc[0]) if "ReportYear" in mbrrace_df.columns else 2024
         st.markdown(
             f"Data loaded from `data/` folder — **{len(mbrrace_df):,} organisations**, "
-            "reporting year 2023."
+            f"reporting year {_mb_report_year}."
         )
         st.caption(
             "Source: MBRRACE-UK Perinatal Mortality Data Viewer "
             "(timms.le.ac.uk/mbrrace-uk-perinatal-mortality/data-viewer/) · "
-            "Crude rates are unadjusted; stabilised rates are case-mix adjusted."
+            "Crude rates are unadjusted; stabilised rates are Bayesian case-mix adjusted."
         )
 
         # Key metrics for focus trust
@@ -1103,7 +1137,7 @@ with tab_mbrrace:
             ]
             if not focus_mb.empty:
                 mb = focus_mb.iloc[0]
-                st.markdown(f"**{mb['OrganisationName']} — 2023**")
+                st.markdown(f"**{mb['OrganisationName']} — {_mb_report_year}**")
                 kc = st.columns(4)
                 for ci, (lbl, col) in enumerate([
                     ("Total births",              "TotalBirths"),
@@ -1146,7 +1180,7 @@ with tab_mbrrace:
                     plot_df = eng
             fig = make_funnel_chart(
                 plot_df, rcol, dcol, "OrganisationName", focus_fragment,
-                f"{label} — MBRRACE-UK 2023",
+                f"{label} — MBRRACE-UK {_mb_report_year}",
                 unit, higher_is_worse=True, comparators=comparators or None,
             )
             if fig:
@@ -1166,8 +1200,8 @@ with tab_mbrrace:
     else:
         st.warning(
             "No MBRRACE file found in the data/ folder. "
-            "Please place `perinatal-mortality-rates-2023-trusthealth-board.csv` "
-            "in the data/ folder, or upload a file below."
+            "Please place `perinatal-mortality-rates-2024-trusthealth-board.csv` "
+            "(or the 2023 equivalent) in the data/ folder, or upload a file below."
         )
 
     st.markdown("---")
